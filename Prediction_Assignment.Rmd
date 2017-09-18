@@ -1,0 +1,146 @@
+---
+##title: "Prediction-Assignment"
+##author: "Seanshir"
+##date: "September 17, 2017"
+##output: html_document
+  ---
+
+#__Summary__
+
+###The goal of this project is to predict the manner in which users of exercise devices exercise by using machine learning algorithms.
+
+
+#__Provided Data__
+
+###The following data are provided:
+
+###Training data:
+
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv
+
+###Test data:
+
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
+
+
+###__Load the required libraries and set Seed:__
+
+```{r results='hide',message=FALSE, warning=FALSE}
+
+rm(list=ls())                
+
+library(knitr)
+library(caret)
+library(rpart)
+library(rpart.plot)
+library(rattle)
+library(randomForest)
+set.seed(12345)
+```
+
+###__Load and preparation of the data__
+
+```{r}
+
+
+# download the datasets
+Maintraining <- read.csv('pml-training.csv')
+Maintesting  <- read.csv('pml-testing.csv')
+
+#Remove the ID columns for testing and training dataset
+Maintesting <- Maintesting[,-c(1,160)]
+Maintraining <- Maintraining[,-1]
+
+#To have the same type of predictors in training and testing dataset and avoid the error with randomForest predict
+Maintesting <- rbind(Maintraining[1,-159],Maintesting)
+Maintesting <- Maintesting[-1,]
+```
+
+###__Create a partition with the training dataset__ 
+```{r }
+inTrain  <- createDataPartition(Maintraining$classe, p=0.7, list=FALSE)
+training <- Maintraining[inTrain, ]
+testing  <- Maintraining[-inTrain, ]
+dim(training)
+dim(testing)
+```
+
+#__Data Cleaning__
+
+###We first remove columns(Variables) with nearly zero variance, and then remove the variables that include mostly NAs.
+``` {r }
+# remove variables with nearly zero variance
+NZV <- nearZeroVar(training)
+training <- training[, -NZV]
+testing  <- testing[, -NZV]
+dim(training)
+dim(testing)
+
+# remove variables that are mostly NA
+AllNA    <- sapply(training, function(x) mean(is.na(x))) > 0.95
+training <- training[, AllNA==FALSE]
+testing  <- testing[, AllNA==FALSE]
+dim(training)
+dim(testing)
+```
+
+#__Prediction Modeling__
+
+###Two methhods are chosen for prediction:
+
+###1.Random Forest
+###2.Decision Tree
+
+
+
+##__1.Random Forest__
+```{r}
+RFmodel <- randomForest(classe ~ ., data=training)
+
+```
+
+###Prediction on testing data using Randon Forest model:
+
+```{r}
+predictRandForest <- predict(RFmodel, newdata=testing)
+cmRF <- confusionMatrix(predictRandForest, testing$classe)
+```
+###As you can see the accuracy using Random Forest method is `r cmRF$overall['Accuracy']`.
+
+
+
+
+##__2.Decision Tree__
+```{r}
+DTmodel <- train(classe ~ ., data = training, method='rpart')
+```
+
+###Plot the decision tree
+```{r}
+fancyRpartPlot(DTmodel$finalModel)
+```
+
+
+
+###Prediction on testing data using Decision Tree model:
+```{r}
+predictDT <- predict(DTmodel, newdata=testing)
+cmDT <- confusionMatrix(predictDT, testing$classe)
+```
+###As you can see the accuracy using Random Forest method is `r cmDT$overall['Accuracy']`.
+
+
+
+
+#__Model Test__
+
+### As we have seen, Random Forest results in much more accurate results, so we use that to predict the new values in the testing dataset provided.
+
+
+###Prediction with testing dataset
+
+```{r}
+predictions <- predict(RFmodel,newdata=Maintesting)
+names(predictions) <- NULL
+print(predictions)
+```
