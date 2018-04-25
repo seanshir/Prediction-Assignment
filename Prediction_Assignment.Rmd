@@ -1,13 +1,17 @@
----
-##title: "Prediction-Assignment"
-##author: "Seanshir"
-##date: "September 17, 2017"
-##output: html_document
-  ---
+
+#__A Predictive Model for Weight Lifting Exercise Dataset__ 
+#__(Practical Machine Learning Final Course Project - Coursera's Data Science Specialization)__ 
+By Ehsan Jafari-Shirazi
+========================================================
+
+
+
+
 
 #__Summary__
 
 ###The goal of this project is to predict the manner in which users of exercise devices exercise by using machine learning algorithms.
+
 
 
 #__Provided Data__
@@ -86,11 +90,7 @@ dim(testing)
 
 #__Prediction Modeling__
 
-###Two methhods are chosen for prediction:
-
-###1.Random Forest
-###2.Decision Tree
-
+###Two methhods are chosen for prediction: 1.Random Forest 2.Decision Tree
 
 
 ##__1.Random Forest__
@@ -104,6 +104,7 @@ RFmodel <- randomForest(classe ~ ., data=training)
 ```{r}
 predictRandForest <- predict(RFmodel, newdata=testing)
 cmRF <- confusionMatrix(predictRandForest, testing$classe)
+cmRF
 ```
 ###As you can see the accuracy using Random Forest method is `r cmRF$overall['Accuracy']`.
 
@@ -126,8 +127,9 @@ fancyRpartPlot(DTmodel$finalModel)
 ```{r}
 predictDT <- predict(DTmodel, newdata=testing)
 cmDT <- confusionMatrix(predictDT, testing$classe)
+cmDT
 ```
-###As you can see the accuracy using Random Forest method is `r cmDT$overall['Accuracy']`.
+###As you can see the accuracy using Decision Tree method is `r cmDT$overall['Accuracy']`.
 
 
 
